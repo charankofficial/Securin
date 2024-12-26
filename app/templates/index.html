@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVE List</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        .pagination {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>CVE List</h1>
+    <div>
+        <label for="resultsPerPage">Results Per Page: </label>
+        <select id="resultsPerPage">
+            <option value="10">10</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>CVE ID</th>
+                <th>DESCRIPTION</th>
+                <th>PUBLISHED DATE</th>
+                <th>LAST MODIFIED DATE</th>
+                <th>STATUS</th>
+            </tr>
+        </thead>
+        <tbody id="cveTableBody">
+        </tbody>
+    </table>
+    <div class="pagination">
+        <button id="prevPage">Previous</button>
+        <span id="pageInfo"></span>
+        <button id="nextPage">Next</button>
+    </div>
+    <script>
+        let currentPage = 1;
+        const resultsPerPage = document.getElementById("resultsPerPage");
+
+        function fetchData(page) {
+            const limit = resultsPerPage.value;
+            fetch(`/cves?page=${page}&limit=${limit}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById("cveTableBody");
+                    tableBody.innerHTML = "";
+                    data.forEach(cve => {
+                        const row = `
+                            <tr>
+                                <td>${cve.id}</td>
+                                <td>${cve.identifier}</td>
+                                <td>${cve.published_date}</td>
+                                <td>${cve.last_modified_date}</td>
+                                // <td>${cve.status}</td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+                    });
+                    document.getElementById("pageInfo").textContent = `Page ${page}`;
+                });
+        }
+
+        document.getElementById("prevPage").addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                fetchData(currentPage);
+            }
+        });
+
+        document.getElementById("nextPage").addEventListener("click", () => {
+            currentPage++;
+            fetchData(currentPage);
+        });
+
+        resultsPerPage.addEventListener("change", () => {
+            currentPage = 1;
+            fetchData(currentPage);
+        });
+
+        fetchData(currentPage);
+    </script>
+</body>
+</html>
